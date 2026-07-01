@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
-import 'models/models.dart';
 import 'controllers/contollers.dart';
-import 'widgets/widgets.dart';
 import 'pages/pages.dart';
 
 
@@ -30,6 +28,10 @@ final router = GoRouter(
             ),
           ],
         ),
+        GoRoute(
+          path: '/newPlaylist',
+          builder: (context, state) => NewPlaylistPage(),
+        )
       ],
     ),
   ],

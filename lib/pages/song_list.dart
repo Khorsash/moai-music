@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/contollers.dart';
@@ -100,12 +101,16 @@ class SongListState extends State<SongList> {
         title: Text(_selectionMode
             ? '${_selectedIds.length} selected'
             : playlist.name),
-        leading: _selectionMode
-            ? IconButton(icon: Icon(Icons.close), onPressed: _exitSelectionMode)
-            : IconButton(icon: Icon(Icons.circle_outlined), onPressed: _enterSelectionModeWFS),
+        leading: IconButton(onPressed: () => context.pop(), icon: Icon(Icons.arrow_back)),
         actions: _selectionMode
-            ? [IconButton(icon: Icon(Icons.delete), onPressed: _deleteSelected)]
-            : null,
+          ? [
+              IconButton(icon: Icon(Icons.close), onPressed: _exitSelectionMode),
+              IconButton(icon: Icon(Icons.delete), onPressed: _deleteSelected),
+            ]
+          : [
+              IconButton(icon: Icon(Icons.circle_outlined), onPressed: _enterSelectionModeWFS),
+            ],
+        
       ),
 
       body: playlist.songs.isEmpty

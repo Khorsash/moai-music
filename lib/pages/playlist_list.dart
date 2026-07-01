@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
 import '../controllers/contollers.dart';
-import '../models/models.dart';
 import '../widgets/playlist_item.dart';
 
 class PlaylistList extends StatefulWidget {
@@ -13,10 +12,9 @@ class PlaylistList extends StatefulWidget {
 }
 
 class PlaylistListState extends State<PlaylistList> {
-  int _counter = 1; 
   void _addPlaylist() {
-    context.read<PlaylistsController>().addPlaylist('playlist$_counter');
-    _counter++;
+    context.push("/newPlaylist");
+    
   }
   @override
   Widget build(BuildContext context) {
@@ -27,7 +25,10 @@ class PlaylistListState extends State<PlaylistList> {
               itemCount: playlists.playlists.length,
               itemBuilder: (context, index) {
                 final playlist = playlists.playlists[index];
-                return PlaylistItem(playlistName: playlist.name, onCLick: () => context.go('/library/${playlist.id}'),);
+                // made push so user can go back to library with back button
+                return PlaylistItem(playlistName: playlist.name, 
+                                    onCLick: 
+                                      () => context.push('/library/${playlist.id}'),);
               }),
       floatingActionButton: FloatingActionButton(
         onPressed: _addPlaylist,

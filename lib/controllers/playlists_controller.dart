@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:uuid/uuid.dart';
 import '../models/models.dart';
 import '../constants.dart';
 
@@ -10,6 +10,8 @@ class PlaylistsController extends ChangeNotifier {
     Playlist(id: allSongsPlaylistName, name: 'All Downloaded', songs: []),
   ];
 
+  final _uuid = Uuid();
+
   List<Playlist> get playlists => _playlists;
 
   Playlist getPlaylist(String id) =>
@@ -18,9 +20,11 @@ class PlaylistsController extends ChangeNotifier {
   Song getSongFrom(String playlistId, String songId) =>
       getPlaylist(playlistId).songs.firstWhere((p) => p.id == songId);
 
-  void addPlaylist(String name) {
-    _playlists.add(Playlist(id: name, name: name, songs: []));
+  String addPlaylist(String name) {
+    String playlistId = _uuid.v4();
+    _playlists.add(Playlist(id: playlistId, name: name, songs: []));
     notifyListeners();
+    return playlistId;
   }
 
   void addSong(String playlistId, Song song) {
