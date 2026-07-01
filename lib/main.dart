@@ -34,6 +34,24 @@ final router = GoRouter(
         )
       ],
     ),
+    GoRoute(
+      path: '/player',
+      pageBuilder: (context, state) => CustomTransitionPage(
+        key: state.pageKey,
+        child: const PlayerPage(),
+        opaque: false,
+        barrierColor: Colors.transparent,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return SlideTransition(
+            position: Tween<Offset>(
+              begin: const Offset(0, 1),
+              end: Offset.zero,
+            ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOutCubic)),
+            child: child,
+          );
+        },
+      ),
+    ),
   ],
 );
 

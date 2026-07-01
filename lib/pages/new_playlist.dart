@@ -31,7 +31,6 @@ class NewPlaylistPageState extends State<NewPlaylistPage> {
         padding: EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,  // shrink to content
-
           crossAxisAlignment: CrossAxisAlignment.center,  // buttons align with field
           children: [
             ConstrainedBox(
