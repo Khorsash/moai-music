@@ -148,7 +148,7 @@ class SongListState extends State<SongList> {
                   ),
                   child: SongItem(
                     title: song.title,
-                    subtitle: song.title,
+                    subtitle: song.artist,
                     state: _getState(id, playback),
                     isSelected: _selectedIds.contains(id),
                     onPlayPause: () => playback.play(widget.playlistId, id),
