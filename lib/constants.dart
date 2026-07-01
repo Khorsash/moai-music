@@ -1,0 +1,1 @@
+const allSongsPlaylistName = 'all-downloaded';
