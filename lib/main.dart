@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'package:just_audio_background/just_audio_background.dart';
 
 import 'controllers/contollers.dart';
 import 'pages/pages.dart';
@@ -56,7 +57,13 @@ final router = GoRouter(
 );
 
 
-void main() {
+Future<void> main() async {
+
+  await JustAudioBackground.init(
+    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+    androidNotificationChannelName: 'Audio playback',
+    androidNotificationOngoing: true,
+  );
   runApp(
     MultiProvider(
       providers: [

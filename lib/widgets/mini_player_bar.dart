@@ -1,5 +1,6 @@
-import 'package:provider/provider.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../controllers/contollers.dart';
 import '../models/song.dart';
 
@@ -21,6 +22,7 @@ class MiniPlayerBar extends StatelessWidget {
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
+        onTap: () => context.push("/player"),
         leading: Icon(Icons.music_note),
         title: Text(song.title),       
         subtitle: Text(song.artist),   

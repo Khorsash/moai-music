@@ -130,7 +130,6 @@ class SongListState extends State<SongList> {
                       _removeItem(id);
                       return true;
                     } else {
-                      print('queued!');
                       return false;
                     }
                   },
