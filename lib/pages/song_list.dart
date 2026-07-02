@@ -150,7 +150,7 @@ class SongListState extends State<SongList> {
                     subtitle: song.artist,
                     state: _getState(id, playback),
                     isSelected: _selectedIds.contains(id),
-                    onPlayPause: () => playback.play(widget.playlistId, id),
+                    onPlayPause: () => playback.playTestAsset(playlist.id, id),
                     onSelectToggle: () => _onSelectToggle(id),
                     onMoreTap: () { /* open settings */ },
                     onLongPress: () {

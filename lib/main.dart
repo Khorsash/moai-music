@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
+import 'package:just_audio_media_kit/just_audio_media_kit.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 import 'controllers/contollers.dart';
 import 'pages/pages.dart';
@@ -58,21 +61,32 @@ final router = GoRouter(
 
 
 Future<void> main() async {
-
-  await JustAudioBackground.init(
-    androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-    androidNotificationChannelName: 'Audio playback',
-    androidNotificationOngoing: true,
-  );
+  WidgetsFlutterBinding.ensureInitialized(); 
+  if (Platform.isLinux || Platform.isWindows) {
+    JustAudioMediaKit.ensureInitialized(
+      linux: true,
+      windows: true,
+    );
+  } else {
+    await JustAudioBackground.init(
+      androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
+      androidNotificationChannelName: 'Audio playback',
+      androidNotificationOngoing: true,
+      androidNotificationIcon: 'mipmap/ic_launcher',
+      androidNotificationClickStartsActivity: true,
+      androidStopForegroundOnPause: true,
+    );
+  }
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => PlaybackController()),
         ChangeNotifierProvider(create: (_) => PlaylistsController()),
       ],
-      child: MoaiMusic(),
+      child: const MoaiMusic(),
     ),
   );
+  await Permission.notification.request();
 }
 
 
