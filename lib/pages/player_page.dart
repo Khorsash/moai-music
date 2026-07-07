@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio/just_audio.dart';
 
-import '../models/models.dart';
 import '../controllers/contollers.dart';
 import '../widgets/album_cover_player.dart';
 
@@ -75,16 +74,18 @@ class _PlayerAppBar extends StatelessWidget {
         icon: const Icon(Icons.keyboard_arrow_down),
       ),
       centerTitle: true,
-      title: Text.rich(
-        TextSpan(
+      title: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const TextSpan(text: "Playing ", style: TextStyle(fontSize: 16)),
-            TextSpan(
-              text: playlistName,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
+            // const TextSpan(text: "Playing ", style: TextStyle(fontSize: 16)),
+            // TextSpan(
+            //   text: playlistName,
+            //   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            // ),
+            Text("Playing", style: TextStyle(fontSize: 16)),
+            Text(playlistName, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))
           ],
-        ),
+        
       ),
     );
   }
@@ -96,11 +97,11 @@ class _SongInfo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ids = context.select<PlaybackController, (String?, String?)>(
-      (p) => (p.playingPlaylistId, p.playingId),
+    final ids = context.select<PlaybackController, String?>(
+      (p) => p.playingId,
     );
     final playlists = context.watch<PlaylistsController>();
-    final song = playlists.getSongFrom(ids.$1!, ids.$2!);
+    final song = playlists.getSong(ids!);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,

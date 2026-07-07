@@ -19,16 +19,18 @@ class PlaylistListState extends State<PlaylistList> {
   @override
   Widget build(BuildContext context) {
     final playlists = context.watch<PlaylistsController>();
+    final playlistIds = playlists.playlists.keys.toList();
     return Scaffold(
       appBar: AppBar(title: Text("Library"),),
       body: ListView.builder(
               itemCount: playlists.playlists.length,
               itemBuilder: (context, index) {
-                final playlist = playlists.playlists[index];
+                final id = playlistIds[index];
+                final playlist = playlists.getPlaylist(id);
                 // made push so user can go back to library with back button
                 return PlaylistItem(playlistName: playlist.name, 
                                     onCLick: 
-                                      () => context.push('/library/${playlist.id}'),);
+                                      () => context.push('/library/$id'),);
               }),
       floatingActionButton: FloatingActionButton(
         onPressed: _addPlaylist,

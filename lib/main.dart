@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moai_music/file_manip.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -62,6 +63,7 @@ final router = GoRouter(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
+  AppPaths.init();
   if (Platform.isLinux || Platform.isWindows) {
     JustAudioMediaKit.ensureInitialized(
       linux: true,
@@ -77,11 +79,31 @@ Future<void> main() async {
       androidStopForegroundOnPause: true,
     );
   }
+  // runApp(
+  //   MultiProvider(
+  //     providers: [
+  //       ChangeNotifierProvider(create: (_) => PlaylistsController()),
+  //       ChangeNotifierProvider(create: (_) => PlaybackController()),
+  //     ],
+  //     child: const MoaiMusic(),
+  //   ),
+  // );
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => PlaybackController()),
         ChangeNotifierProvider(create: (_) => PlaylistsController()),
+        ChangeNotifierProxyProvider<PlaylistsController, PlaybackController>(
+          create: (context) => PlaybackController(
+            getSong: context.read<PlaylistsController>().getSong,
+            getPlaylist: context.read<PlaylistsController>().getPlaylist,
+          ),
+          update: (context, playlistsController, previous) =>
+              previous ??
+              PlaybackController(
+                getSong: playlistsController.getSong,
+                getPlaylist: playlistsController.getPlaylist,
+              ),
+        ),
       ],
       child: const MoaiMusic(),
     ),

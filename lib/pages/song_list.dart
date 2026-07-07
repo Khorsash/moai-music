@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/contollers.dart';
-import '../models/models.dart';
 import '../widgets/song_item.dart';
 
 
@@ -16,22 +15,20 @@ class SongList extends StatefulWidget {
 }
 
 class SongListState extends State<SongList> {
-  int _counter = 1;
 
   bool _selectionMode = false;
   Set<String> _selectedIds = {};
 
   void _addItem() {
     final playlists = context.read<PlaylistsController>();
-    playlists.addSong(widget.playlistId, Song(
-      id: 'song_$_counter',
-      title: 'Item #$_counter',
-      artist: 'This is item number $_counter',
-    ));
-    _counter++;
+    // playlists.addSong(widget.playlistId, Song(
+    //   id: 'song_$_counter',
+    //   title: 'Item #$_counter',
+    //   artist: 'This is item number $_counter',
+    // ));
   }
 
-  void _removeItem(String id) {
+  void _deleteItem(String id) {
     final playlists = context.read<PlaylistsController>();
     final playback = context.read<PlaybackController>();
     if (playback.playingId == id) playback.stop();
@@ -84,7 +81,7 @@ class SongListState extends State<SongList> {
 
   SongState _getState(String id, PlaybackController playback) {
     if (_selectionMode) return SongState.selectionMode;
-    if (playback.playingId == id) {
+    if (playback.playingId == id && playback.playingPlaylistId == widget.playlistId) {
       return playback.isPaused ? SongState.paused : SongState.playing;
     }
     return SongState.defaultState;
@@ -118,8 +115,8 @@ class SongListState extends State<SongList> {
           : ListView.builder(
               itemCount: playlist.songs.length,
               itemBuilder: (context, index) {
-                final song = playlist.songs[index];
-                final id = song.id;
+                final id = playlist.songs[index];
+                final song = playlists.getSong(id);
                 return Dismissible(
                   key: ValueKey(id),
                   direction: _selectionMode
@@ -127,7 +124,7 @@ class SongListState extends State<SongList> {
                       : DismissDirection.horizontal,
                   confirmDismiss: (direction) async {
                     if (direction == DismissDirection.endToStart) {
-                      _removeItem(id);
+                      _deleteItem(id);
                       return true;
                     } else {
                       return false;
@@ -145,17 +142,23 @@ class SongListState extends State<SongList> {
                     padding: EdgeInsets.only(right: 16),
                     child: Icon(Icons.queue_music_rounded, color: Colors.white),
                   ),
-                  child: SongItem(
-                    title: song.title,
-                    subtitle: song.artist,
-                    state: _getState(id, playback),
-                    isSelected: _selectedIds.contains(id),
-                    onPlayPause: () => playback.playTestAsset(playlist.id, id),
-                    onSelectToggle: () => _onSelectToggle(id),
-                    onMoreTap: () { /* open settings */ },
-                    onLongPress: () {
-                      if (!_selectionMode) _enterSelectionMode(id);
-                    },
+                  child: FutureBuilder(
+                    future: song.isAvailable(), 
+                    builder: ((context, snapshot) =>
+                      SongItem(
+                        title: song.title,
+                        subtitle: song.artist,
+                        state: _getState(id, playback),
+                        isSelected: _selectedIds.contains(id),
+                        onPlayPause: () => playback.play(widget.playlistId, id),
+                        onSelectToggle: () => _onSelectToggle(id),
+                        onMoreTap: () { /* open settings */ },
+                        onLongPress: () {
+                          if (!_selectionMode) _enterSelectionMode(id);
+                        },
+                        isPlayable: snapshot.hasData ? snapshot.data! : false,
+                      )
+                    )
                   ),
                 );
               },

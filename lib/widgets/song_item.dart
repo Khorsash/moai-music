@@ -12,6 +12,7 @@ class SongItem extends StatelessWidget {
   final VoidCallback onSelectToggle;
   final VoidCallback onMoreTap;
   final VoidCallback onLongPress;
+  final bool isPlayable;
 
   const SongItem({
     super.key,
@@ -23,6 +24,7 @@ class SongItem extends StatelessWidget {
     required this.onSelectToggle,
     required this.onMoreTap,
     required this.onLongPress,
+    required this.isPlayable
   });
 
   Widget _buildLeading() {

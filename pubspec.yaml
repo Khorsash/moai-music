@@ -1,4 +1,4 @@
-name: flutter_test1
+name: moai_music
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   provider: ^6.0.0
   path_provider: ^2.1.3
+  path: ^1.9.1
   just_audio: ^0.10.5
   go_router: ^14.0.0
   uuid: ^4.0.0
@@ -39,11 +40,14 @@ dependencies:
   just_audio_media_kit: ^2.1.0
   media_kit_libs_linux: ^1.2.1
   media_kit_libs_windows_audio: ^1.0.9
+  audiotags: ^1.4.5
   permission_handler: ^11.3.0
-
+  
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  http: ^1.6.0
+
 
 dev_dependencies:
   flutter_test:

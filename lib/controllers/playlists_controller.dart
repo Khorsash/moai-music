@@ -1,44 +1,71 @@
 import 'package:flutter/material.dart';
+import 'package:moai_music/constants.dart';
 import 'package:uuid/uuid.dart';
-import '../models/models.dart';
-import '../constants.dart';
+import 'package:moai_music/models/models.dart';
+import 'package:moai_music/file_manip.dart';
 
 
 
 class PlaylistsController extends ChangeNotifier {
-  final List<Playlist> _playlists = [
-    Playlist(id: allSongsPlaylistName, name: 'All Downloaded', songs: []),
-  ];
-
+  Map<String, Song> _allSongsAdded = {};
+  Map<String, Playlist> _playlists = {};
   final _uuid = Uuid();
 
-  List<Playlist> get playlists => _playlists;
+  Map<String, Playlist> get playlists => _playlists;
 
-  Playlist getPlaylist(String id) =>
-      _playlists.firstWhere((p) => p.id == id);
+  PlaylistsController() {
+    _allSongsAdded = loadAllSaved();
+    _playlists = loadPlaylists(_allSongsAdded);
+  }
 
-  Song getSongFrom(String playlistId, String songId) =>
-      getPlaylist(playlistId).songs.firstWhere((p) => p.id == songId);
+
+  Playlist getPlaylist(String id) {
+    return _playlists.containsKey(id) ? _playlists[id]! : Playlist(name: "THIS PLAYLIST DOESN'T EXIST", songs: List<String>.empty());
+  }
+
+  Song getSong(String songId) {
+    return _allSongsAdded.containsKey(songId) 
+            ? _allSongsAdded[songId]! 
+            : Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
+  }
+      // getPlaylist(playlistId).songs.firstWhere((p) => p.id == songId);
 
   String addPlaylist(String name) {
     String playlistId = _uuid.v4();
-    _playlists.add(Playlist(id: playlistId, name: name, songs: []));
+    _playlists[playlistId] = Playlist(name: name, songs: []);
+    savePlaylists(playlists);
     notifyListeners();
     return playlistId;
   }
 
-  void addSong(String playlistId, Song song) {
-    getPlaylist(playlistId).songs.add(song);
+  void addSong(Song song) {
+    final songId = _uuid.v4();
+    _allSongsAdded[songId] = song;
+    saveAllSaved(_allSongsAdded);
+    addToPlaylist(allSongsPlaylistName, songId);
     notifyListeners();
   }
 
+  bool addToPlaylist(String playlistId, String songId) {
+    if(!_playlists.containsKey(playlistId)) return false;
+    if(_playlists[playlistId]!.songs.contains(songId)) return false;
+    _playlists[playlistId]!.songs.add(songId);
+    if(playlistId != allSongsPlaylistName) savePlaylists(_playlists);
+    notifyListeners();
+    return true;
+  }
+
   void removeSong(String playlistId, String songId) {
-    getPlaylist(playlistId).songs.removeWhere((s) => s.id == songId);
+    if(!_playlists.containsKey(playlistId)) return;
+    _playlists[playlistId]!.songs.removeWhere((s) => s == songId);
+    savePlaylists(_playlists);
     notifyListeners();
   }
 
   void removeSongs(String playlistId, Iterable<String> selectedIds) {
-    getPlaylist(playlistId).songs.removeWhere((s) => selectedIds.contains(s.id));
+    if(!_playlists.containsKey(playlistId)) return;
+    _playlists[playlistId]!.songs.removeWhere((s) => selectedIds.contains(s));
+    savePlaylists(_playlists);
     notifyListeners();
   }
 

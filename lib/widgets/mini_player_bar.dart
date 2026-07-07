@@ -17,7 +17,7 @@ class MiniPlayerBar extends StatelessWidget {
       return SizedBox.shrink();
     }
 
-    Song song = playlists.getSongFrom(playback.playingPlaylistId!, playback.playingId!);
+    Song song = playlists.getSong(playback.playingId!);
 
     return Card(
       margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
