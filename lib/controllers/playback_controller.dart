@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:just_audio_background/just_audio_background.dart';
@@ -6,8 +8,12 @@ import '../models/models.dart';
 
 class PlaybackController extends ChangeNotifier {
   final AudioPlayer _player = AudioPlayer();
+  final List<String> _playlistQueue = [];
+  final List<String> _userQueue = [];
+  final List<String> _historyQueue = [];
   final Song Function(String songId) _getSong;
-  final Playlist Function(String playlistId) _getPlaylist;
+  final List<String> Function(String playlistId) _getPlaylist;
+  final bool Function(String playlistId) _consumeChanged;
 
   String? _playingId;
   bool _isPaused = false;
@@ -16,6 +22,8 @@ class PlaybackController extends ChangeNotifier {
   bool _shuffled = false;
   Duration _position = Duration.zero;
   Duration _duration = Duration.zero;
+  bool _isCurrentFromUserQueue = false;
+  bool _isChangingSong = false;
 
   String? get playingId => _playingId;
   bool get isPaused => _isPaused;
@@ -28,7 +36,8 @@ class PlaybackController extends ChangeNotifier {
   PlaybackController({
     required this._getSong,
     required this._getPlaylist,
-  }) {
+    required this._consumeChanged
+  }) {    
     _player.positionStream.listen((pos) {
       _position = pos;
       notifyListeners();
@@ -65,7 +74,10 @@ class PlaybackController extends ChangeNotifier {
     _player.play();
     notifyListeners();
   }
-  Future<void> play(String playlistId, String songId) async {
+  Future<void> play(String playlistId, String songId, {bool redirectNext=true}) async {
+    if(playlistId != playingPlaylistId) {
+      _historyQueue.clear();
+    }
     if (_playingId == songId && _isPaused) {
       _isPaused = false;
     } else {
@@ -73,22 +85,47 @@ class PlaybackController extends ChangeNotifier {
       _playingPlaylistId = playlistId;
       _isPaused = false;
       final Song song = _getSong(_playingId!);
-      final MediaItem tag = MediaItem(id: songId, title: song.title, artist: song.artist);
-      if(await song.isAvailable()) {
-        await _player.setAudioSource(
-          song.songType == .local 
-          ? AudioSource.file(song.address, tag: tag)
-          : AudioSource.uri(Uri.parse(song.address), tag: tag)
-        );
+      try {
+        if(await song.isAvailable()) {
+          final MediaItem tag = MediaItem(id: songId, title: song.title, artist: song.artist);
+          await _player.setAudioSource(
+            song.songType == .local 
+            ? AudioSource.file(song.address, tag: tag)
+            : AudioSource.uri(Uri.parse(song.address), tag: tag)
+          );
+        } else {
+          _skipBad(redirectNext);
+          return; // stop here — don't fall through to play a source we never set
+        }
+      } catch(e) {
+        _skipBad(redirectNext);
+        return;
       }
     }
     _isPaused = false;
     _player.play(); // fire-and-forget — this Future only resolves when playback stops
-    notifyListeners();
-    
+    notifyListeners(); 
   }
 
+
+  void onPlaylistUpdated() {
+    if (_playingPlaylistId == null) return;
+    if (!_consumeChanged(_playingPlaylistId!)) return; // not our playlist, skip
+
+    _rebuildQueue(_playingPlaylistId!);
+    notifyListeners();
+  }
+
+  void _rebuildQueue(String playingPlaylistId) {
+    _playlistQueue.clear();
+    _buildQueue(playingPlaylistId);
+  }
   
+  void _buildQueue(String playingPlaylistId) {
+    final List<String> songs = [..._getPlaylist(playingPlaylistId)];
+    if(shuffled) songs.shuffle();
+    _playlistQueue.addAll(songs);
+  }
 
   void pause() {
     _isPaused = true;
@@ -100,6 +137,14 @@ class PlaybackController extends ChangeNotifier {
     _isPaused = false;
     _player.play(); // fire-and-forget, same reason as above
     notifyListeners();
+  }
+
+  Future<void> _skipBad(bool redirectNext) async {
+    if (redirectNext) {
+        await _next();
+      } else {
+        await previous();
+      }
   }
 
   Future<void> stop() async {
@@ -128,11 +173,52 @@ class PlaybackController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// to be implemented
-  void next() {}
+  Future<void> next() async {
+    if (_isChangingSong) return;
+    _isChangingSong = true;
+    try {
+      await _next();
+    } finally {
+      _isChangingSong = false;
+    }
+  }
 
-  /// to be implemented
-  void previous() {}
+  Future<void> previous() async {
+    if (_isChangingSong) return;
+    _isChangingSong = true;
+    try {
+      await _previous();
+    } finally {
+      _isChangingSong = false;
+    }
+  }
+
+  Future<void> _next() async {
+    if(playingPlaylistId == null) return;
+    if(_playlistQueue.isEmpty && _userQueue.isEmpty && _loopState == .off ) {
+      _playingPlaylistId = null;
+      _playingId = null;
+      _historyQueue.clear();
+      notifyListeners();
+      return;
+    }
+    if(_playlistQueue.isEmpty && _userQueue.isEmpty) {
+      _rebuildQueue(_playingPlaylistId!);
+    }
+    if(_isCurrentFromUserQueue) _historyQueue.add(_playingId!);
+    _isCurrentFromUserQueue = _userQueue.isNotEmpty;
+    await play(playingPlaylistId!, _userQueue.isNotEmpty ? _userQueue.removeAt(0) : _playlistQueue.removeAt(0), redirectNext: true);
+  }
+
+
+  Future<void> _previous() async {
+    if(playingPlaylistId == null || _playingId == null) return;
+    if(_historyQueue.isEmpty) {
+      await setSongProgress(Duration.zero);
+    } else {
+      await play(_playingPlaylistId!, _historyQueue.removeLast(), redirectNext: _historyQueue.isEmpty);
+    }
+  }
 
   Future<void> setSongProgress(Duration target) async {
     await _player.seek(target);

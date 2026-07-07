@@ -10,6 +10,7 @@ class PlaylistsController extends ChangeNotifier {
   Map<String, Song> _allSongsAdded = {};
   Map<String, Playlist> _playlists = {};
   final _uuid = Uuid();
+  final Set<String> _changedPlaylistIds = {};
 
   Map<String, Playlist> get playlists => _playlists;
 
@@ -28,7 +29,19 @@ class PlaylistsController extends ChangeNotifier {
             ? _allSongsAdded[songId]! 
             : Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
   }
+
+  List<String> getPlaylistAsIdlist(String id) {
+    return getPlaylist(id).songs;
+  }
       // getPlaylist(playlistId).songs.firstWhere((p) => p.id == songId);
+
+  void _markChanged(String playlistId) {
+    _changedPlaylistIds.add(playlistId);
+  }
+
+  bool consumeChanged(String playlistId) {
+    return _changedPlaylistIds.remove(playlistId);
+  }
 
   String addPlaylist(String name) {
     String playlistId = _uuid.v4();
@@ -43,7 +56,6 @@ class PlaylistsController extends ChangeNotifier {
     _allSongsAdded[songId] = song;
     saveAllSaved(_allSongsAdded);
     addToPlaylist(allSongsPlaylistName, songId);
-    notifyListeners();
   }
 
   bool addToPlaylist(String playlistId, String songId) {
@@ -51,6 +63,7 @@ class PlaylistsController extends ChangeNotifier {
     if(_playlists[playlistId]!.songs.contains(songId)) return false;
     _playlists[playlistId]!.songs.add(songId);
     if(playlistId != allSongsPlaylistName) savePlaylists(_playlists);
+    _markChanged(playlistId);
     notifyListeners();
     return true;
   }
@@ -58,14 +71,26 @@ class PlaylistsController extends ChangeNotifier {
   void removeSong(String playlistId, String songId) {
     if(!_playlists.containsKey(playlistId)) return;
     _playlists[playlistId]!.songs.removeWhere((s) => s == songId);
-    savePlaylists(_playlists);
+    if(playlistId != allSongsPlaylistName) { 
+      savePlaylists(_playlists); 
+    } else {
+      _allSongsAdded.remove(songId);
+      saveAllSaved(_allSongsAdded);
+    }
+    _markChanged(playlistId);
     notifyListeners();
   }
 
   void removeSongs(String playlistId, Iterable<String> selectedIds) {
     if(!_playlists.containsKey(playlistId)) return;
     _playlists[playlistId]!.songs.removeWhere((s) => selectedIds.contains(s));
-    savePlaylists(_playlists);
+    if(playlistId != allSongsPlaylistName) {
+      savePlaylists(_playlists);
+    } else {
+      _allSongsAdded.removeWhere((id, song) => selectedIds.contains(id));
+      saveAllSaved(_allSongsAdded);
+    }
+    _markChanged(playlistId);
     notifyListeners();
   }
 

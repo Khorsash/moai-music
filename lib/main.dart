@@ -95,14 +95,19 @@ Future<void> main() async {
         ChangeNotifierProxyProvider<PlaylistsController, PlaybackController>(
           create: (context) => PlaybackController(
             getSong: context.read<PlaylistsController>().getSong,
-            getPlaylist: context.read<PlaylistsController>().getPlaylist,
+            getPlaylist: context.read<PlaylistsController>().getPlaylistAsIdlist,
+            consumeChanged: context.read<PlaylistsController>().consumeChanged,
           ),
-          update: (context, playlistsController, previous) =>
-              previous ??
+          update: (context, playlistsController, previous) {
+              final controller = previous ??
               PlaybackController(
                 getSong: playlistsController.getSong,
-                getPlaylist: playlistsController.getPlaylist,
-              ),
+                getPlaylist: playlistsController.getPlaylistAsIdlist,
+                consumeChanged: playlistsController.consumeChanged,
+              );
+              controller.onPlaylistUpdated();
+              return controller;
+          },
         ),
       ],
       child: const MoaiMusic(),
