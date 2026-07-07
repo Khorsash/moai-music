@@ -1,0 +1,6 @@
+- [ ] add song addition variations
+    - [ ] audio file from server
+    - [ ] local file
+    - [ ] all files from local directory
+- [ ] add option to clone files to app directory
+- [ ] add option to download audio file from server
