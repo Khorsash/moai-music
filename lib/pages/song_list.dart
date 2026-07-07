@@ -144,7 +144,7 @@ class SongListState extends State<SongList> {
                   ),
                   child: FutureBuilder(
                     future: song.isAvailable(), 
-                    builder: ((context, snapshot) =>
+                    builder: (context, snapshot) =>
                       SongItem(
                         title: song.title,
                         subtitle: song.artist,
@@ -158,7 +158,6 @@ class SongListState extends State<SongList> {
                         },
                         isPlayable: snapshot.hasData ? snapshot.data! : false,
                       )
-                    )
                   ),
                 );
               },

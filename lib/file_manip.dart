@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:moai_music/models/models.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
+import 'package:audiotags/audiotags.dart';
 
 import 'constants.dart';
 
@@ -86,4 +87,14 @@ void savePlaylists(Map<String, Playlist> playlists) {
 }
 
 
-
+Future<Song> songFromFile(String filePath) async {
+  final tag = await AudioTags.read(filePath);
+  if(tag == null) return Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
+  return Song(title: tag.title ?? "Untitled", 
+              artist: tag.trackArtist ?? ( tag.albumArtist ?? "Unknown"), 
+              address: filePath, 
+              songType: .local, 
+              album: tag.album ?? "single", 
+              genre: tag.genre ?? "none");
+  
+}

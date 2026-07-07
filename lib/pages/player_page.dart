@@ -36,8 +36,6 @@ class PlayerPageState extends State<PlayerPage> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const _PlayerAppBar(),
-              const AlbumCoverPlayer(image: null), // FIXME: wire real artwork
-              const SizedBox(height: 10),
               const _SongInfo(),
               const SizedBox(height: 20),
               _ProgressSlider(
@@ -106,6 +104,12 @@ class _SongInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        FutureBuilder(
+          future: song.artwork(), 
+          builder: (context, snapshot) =>
+            AlbumCoverPlayer(image: snapshot.data), 
+        ),
+        SizedBox(height: 10),
         Text(
           song.title,
           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
