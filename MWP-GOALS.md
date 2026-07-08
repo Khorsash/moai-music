@@ -4,4 +4,4 @@
     - [ ] all files from local directory
 - [x] add option to clone files to app directory
 - [x] add option to move files to app directory
-- [ ] add option to download audio file from server
+- [x] add option to download audio file from server
