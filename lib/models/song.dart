@@ -16,7 +16,7 @@ class Song{
       case .nonexistent:
         return false;
       case .local:
-        return fileExists(address);
+        return await fileExists(address) && hasAudioExtension(address);
       case .online:
         return await checkAudioUrl(address)==UrlAudioCheckResult.ok;
     }
@@ -42,7 +42,7 @@ class Song{
     year: json['year'] as int? ?? 1984
   );
 
-  static Future<Song> fromFile(String fileName) async => await songFromFile(fileName);
+  static Future<Song> fromFile(String fileName) async => await songFromReadyPath(fileName);
 
   Future<Image?> artwork() async {
     if(songType != .local) return null;
