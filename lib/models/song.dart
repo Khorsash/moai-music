@@ -53,4 +53,6 @@ class Song{
     }
     return null;
   }
+
+  factory Song.badSong() => Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
 } 
