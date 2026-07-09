@@ -34,7 +34,7 @@ class NewPlaylistPageState extends State<NewPlaylistPage> {
           crossAxisAlignment: CrossAxisAlignment.center,  // buttons align with field
           children: [
             ConstrainedBox(
-              constraints: BoxConstraints(minWidth: 150 ,maxWidth: 300),
+              constraints: BoxConstraints(minWidth: 150, maxWidth: 300),
               child: TextField(
                 controller: tcontroller,
                 style: TextStyle(

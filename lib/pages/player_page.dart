@@ -15,13 +15,21 @@ class PlayerPage extends StatefulWidget {
 
 class PlayerPageState extends State<PlayerPage> {
   Duration? _dragPosition;
+  bool _closing = false;
+  
 
   @override
   Widget build(BuildContext context) {
     final playingId = context.select<PlaybackController, String?>((p) => p.playingId);
 
     if (playingId == null) {
-      return const Center(child: Text("nothing to show"));
+      if (!_closing) {
+        _closing = true;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) context.pop();
+        });
+      }
+      return const Center();
     }
 
     return Dismissible(

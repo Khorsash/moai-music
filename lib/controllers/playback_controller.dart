@@ -12,6 +12,8 @@ class PlaybackController extends ChangeNotifier {
   final Song Function(String songId) _getSong;
   final List<String> Function(String playlistId) _getPlaylist;
   final bool Function(String playlistId) _consumeChanged;
+  final bool Function(String songId) _songExists;
+
 
   String? _playingId;
   bool _isPaused = false;
@@ -34,7 +36,8 @@ class PlaybackController extends ChangeNotifier {
   PlaybackController({
     required this._getSong,
     required this._getPlaylist,
-    required this._consumeChanged
+    required this._consumeChanged,
+    required this._songExists
   }) {    
     _player.positionStream.listen((pos) {
       _position = pos;
@@ -55,6 +58,12 @@ class PlaybackController extends ChangeNotifier {
     _player.setLoopMode(_loopState);
   }
 
+  void addToQueue(String songId) {
+    if(_songExists(songId)) {
+      _userQueue.add(songId);
+    }
+  }
+
   Future<void> playTestAsset(String playlistId, String id) async {
     await _player.setAudioSource(
       AudioSource.asset(
@@ -72,9 +81,11 @@ class PlaybackController extends ChangeNotifier {
     _player.play();
     notifyListeners();
   }
-  Future<void> play(String playlistId, String songId, {bool redirectNext=true}) async {
-    if(playlistId != playingPlaylistId) {
+
+  Future<void> play(String playlistId, String songId, {bool redirectNext=true, bool queueGoing=false}) async {
+    if(playlistId != _playingPlaylistId || !queueGoing) {
       _historyQueue.clear();
+      _rebuildQueue(playlistId, startAfter: songId);
     }
     if (_playingId == songId && _isPaused) {
       _isPaused = false;
@@ -114,15 +125,24 @@ class PlaybackController extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _rebuildQueue(String playingPlaylistId) {
-    _playlistQueue.clear();
-    _buildQueue(playingPlaylistId);
-  }
-  
-  void _buildQueue(String playingPlaylistId) {
-    final List<String> songs = [..._getPlaylist(playingPlaylistId)];
-    if(shuffled) songs.shuffle();
-    _playlistQueue.addAll(songs);
+  void _rebuildQueue(String playlistId, {String? startAfter}) {
+    final List<String> songs = [..._getPlaylist(playlistId)];
+    if (shuffled) songs.shuffle();
+
+    if (startAfter != null) {
+      final idx = songs.indexOf(startAfter);
+
+      if (idx != -1 && !shuffled) {
+        songs.removeRange(0, idx + 1); // drop everything up to & including the tapped song
+      }
+      else {
+        songs.removeAt(idx);
+      }
+    }
+
+    _playlistQueue
+      ..clear()
+      ..addAll(songs);
   }
 
   void pause() {
@@ -141,7 +161,7 @@ class PlaybackController extends ChangeNotifier {
     if (redirectNext) {
         await _next();
       } else {
-        await previous();
+        await _previous();
       }
   }
 
@@ -149,6 +169,7 @@ class PlaybackController extends ChangeNotifier {
     _playingId = null;
     _playingPlaylistId = null;
     _isPaused = false;
+    _historyQueue.clear();
     await _player.stop();
     notifyListeners();
   }
@@ -162,12 +183,22 @@ class PlaybackController extends ChangeNotifier {
       case LoopMode.one:
         _loopState = LoopMode.off;
     }
-    _player.setLoopMode(_loopState);
+    _player.setLoopMode(_loopState == LoopMode.one ? LoopMode.one : LoopMode.off);
     notifyListeners();
   }
 
   void toggleShuffle() {
     _shuffled = !_shuffled;
+    if(_playingId == null || _playingPlaylistId == null) return;
+    if (_shuffled) {
+        _playlistQueue.shuffle();
+    } else {
+      final original = _getPlaylist(_playingPlaylistId!);
+      final remaining = _playlistQueue.toSet();
+      _playlistQueue
+        ..clear()
+        ..addAll(original.where(remaining.contains));
+    }
     notifyListeners();
   }
 
@@ -194,18 +225,16 @@ class PlaybackController extends ChangeNotifier {
   Future<void> _next() async {
     if(playingPlaylistId == null) return;
     if(_playlistQueue.isEmpty && _userQueue.isEmpty && _loopState == .off ) {
-      _playingPlaylistId = null;
-      _playingId = null;
-      _historyQueue.clear();
+      await stop();
       notifyListeners();
       return;
     }
     if(_playlistQueue.isEmpty && _userQueue.isEmpty) {
       _rebuildQueue(_playingPlaylistId!);
     }
-    if(_isCurrentFromUserQueue) _historyQueue.add(_playingId!);
+    if(!_isCurrentFromUserQueue) _historyQueue.add(_playingId!);
     _isCurrentFromUserQueue = _userQueue.isNotEmpty;
-    await play(playingPlaylistId!, _userQueue.isNotEmpty ? _userQueue.removeAt(0) : _playlistQueue.removeAt(0), redirectNext: true);
+    await play(playingPlaylistId!, _userQueue.isNotEmpty ? _userQueue.removeAt(0) : _playlistQueue.removeAt(0), redirectNext: true, queueGoing: true);
   }
 
 
@@ -214,7 +243,7 @@ class PlaybackController extends ChangeNotifier {
     if(_historyQueue.isEmpty) {
       await setSongProgress(Duration.zero);
     } else {
-      await play(_playingPlaylistId!, _historyQueue.removeLast(), redirectNext: _historyQueue.isEmpty);
+      await play(_playingPlaylistId!, _historyQueue.removeLast(), redirectNext: _historyQueue.isEmpty, queueGoing: true);
     }
   }
 

@@ -30,6 +30,8 @@ class PlaylistsController extends ChangeNotifier {
             : Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
   }
 
+  bool songExists(String songId) => _allSongsAdded.containsKey(songId);
+
   List<String> getPlaylistAsIdlist(String id) {
     return getPlaylist(id).songs;
   }
@@ -51,18 +53,37 @@ class PlaylistsController extends ChangeNotifier {
     return playlistId;
   }
 
+
   void addSong(Song song) {
+    if(song.songType == .nonexistent) return;
     final songId = _uuid.v4();
     _allSongsAdded[songId] = song;
     saveAllSaved(_allSongsAdded);
     addToPlaylist(allSongsPlaylistName, songId);
   }
+  
+  void addSongs(List<Song> songs) {
+    final validSongs = songs.where((s) => s.songType != SongType.nonexistent);
+    if (validSongs.isEmpty) return;
+
+    for (final song in validSongs) {
+      final songId = _uuid.v4();
+      _allSongsAdded[songId] = song;
+      _playlists[allSongsPlaylistName]!.songs.add(songId);
+    }
+
+    saveAllSaved(_allSongsAdded);
+    savePlaylists(_playlists);
+    _markChanged(allSongsPlaylistName);
+    notifyListeners();
+  }
+
 
   bool addToPlaylist(String playlistId, String songId) {
     if(!_playlists.containsKey(playlistId)) return false;
     if(_playlists[playlistId]!.songs.contains(songId)) return false;
     _playlists[playlistId]!.songs.add(songId);
-    if(playlistId != allSongsPlaylistName) savePlaylists(_playlists);
+    savePlaylists(_playlists);
     _markChanged(playlistId);
     notifyListeners();
     return true;
@@ -93,6 +114,4 @@ class PlaylistsController extends ChangeNotifier {
     _markChanged(playlistId);
     notifyListeners();
   }
-
-  
 }

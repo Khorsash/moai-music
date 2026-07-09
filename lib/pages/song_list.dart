@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moai_music/file_manip.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/contollers.dart';
@@ -19,13 +20,30 @@ class SongListState extends State<SongList> {
   bool _selectionMode = false;
   Set<String> _selectedIds = {};
 
-  void _addItem() {
+  Future<void> _addSongs() async {
     final playlists = context.read<PlaylistsController>();
-    // playlists.addSong(widget.playlistId, Song(
-    //   id: 'song_$_counter',
-    //   title: 'Item #$_counter',
-    //   artist: 'This is item number $_counter',
-    // ));
+    final paths = await pickFiles();
+    if(paths.isEmpty) return;
+    if(!mounted) return;
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user can't tap outside to dismiss mid-import
+      builder: (context) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Importing songs...'),
+          ],
+        ),
+      ),
+    );
+    try {
+      final songs = await songsFromFiles(paths, SongAddMode.keepPath);
+      playlists.addSongs(songs);
+    } finally {
+      if (mounted) Navigator.of(context, rootNavigator: true).pop();
+    }
   }
 
   void _deleteItem(String id) {
@@ -79,6 +97,11 @@ class SongListState extends State<SongList> {
     });
   }
 
+  void _enqueueItem(String songId) {
+    final playback = context.read<PlaybackController>();
+    playback.addToQueue(songId);
+  }
+
   SongState _getState(String id, PlaybackController playback) {
     if (_selectionMode) return SongState.selectionMode;
     if (playback.playingId == id && playback.playingPlaylistId == widget.playlistId) {
@@ -127,6 +150,7 @@ class SongListState extends State<SongList> {
                       _deleteItem(id);
                       return true;
                     } else {
+                      _enqueueItem(id);
                       return false;
                     }
                   },
@@ -164,7 +188,7 @@ class SongListState extends State<SongList> {
             ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: _addItem,
+        onPressed: _addSongs,
         child: Icon(Icons.add),
       ),
     );

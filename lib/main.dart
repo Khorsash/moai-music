@@ -11,7 +11,6 @@ import 'controllers/contollers.dart';
 import 'pages/pages.dart';
 
 
-const allSongsPlaylistName = 'all-downloaded';
 
 final router = GoRouter(
   routes: [
@@ -63,13 +62,14 @@ final router = GoRouter(
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized(); 
-  AppPaths.init();
+  await AppPaths.init();
   if (Platform.isLinux || Platform.isWindows) {
     JustAudioMediaKit.ensureInitialized(
       linux: true,
       windows: true,
     );
   } else {
+    await Permission.notification.request();
     await JustAudioBackground.init(
       androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
       androidNotificationChannelName: 'Audio playback',
@@ -79,15 +79,6 @@ Future<void> main() async {
       androidStopForegroundOnPause: true,
     );
   }
-  // runApp(
-  //   MultiProvider(
-  //     providers: [
-  //       ChangeNotifierProvider(create: (_) => PlaylistsController()),
-  //       ChangeNotifierProvider(create: (_) => PlaybackController()),
-  //     ],
-  //     child: const MoaiMusic(),
-  //   ),
-  // );
   runApp(
     MultiProvider(
       providers: [
@@ -97,6 +88,7 @@ Future<void> main() async {
             getSong: context.read<PlaylistsController>().getSong,
             getPlaylist: context.read<PlaylistsController>().getPlaylistAsIdlist,
             consumeChanged: context.read<PlaylistsController>().consumeChanged,
+            songExists: context.read<PlaylistsController>().songExists
           ),
           update: (context, playlistsController, previous) {
               final controller = previous ??
@@ -104,6 +96,7 @@ Future<void> main() async {
                 getSong: playlistsController.getSong,
                 getPlaylist: playlistsController.getPlaylistAsIdlist,
                 consumeChanged: playlistsController.consumeChanged,
+                songExists: playlistsController.songExists
               );
               controller.onPlaylistUpdated();
               return controller;
@@ -113,7 +106,6 @@ Future<void> main() async {
       child: const MoaiMusic(),
     ),
   );
-  await Permission.notification.request();
 }
 
 
