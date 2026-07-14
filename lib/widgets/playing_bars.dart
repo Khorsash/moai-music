@@ -32,24 +32,27 @@ class _PlayingBarsState extends State<PlayingBars> with TickerProviderStateMixin
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: _controllers.map((controller) {
-        return AnimatedBuilder(
-          animation: controller,
-          builder: (context, child) {
-            return Container(
-              width: 3,
-              height: 6 + (controller.value * 14), // bar height animates 6–20px
-              margin: EdgeInsets.symmetric(horizontal: 1),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            );
-          },
-        );
-      }).toList(),
+    return Center(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: _controllers.map((controller) {
+          return AnimatedBuilder(
+            animation: controller,
+            builder: (context, child) {
+              return Container(
+                width: 3,
+                height: 6 + (controller.value * 14), // bar height animates 6–20px
+                margin: EdgeInsets.symmetric(horizontal: 1),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      ),
     );
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:moai_music/constants.dart';
 import 'package:moai_music/file_manip.dart';
 import 'package:provider/provider.dart';
 
 import '../controllers/contollers.dart';
+import '../models/song.dart';
 import '../widgets/song_item.dart';
 
 
@@ -19,8 +21,23 @@ class SongListState extends State<SongList> {
 
   bool _selectionMode = false;
   Set<String> _selectedIds = {};
+  final Map<String, Future<(bool, Image?)>> _songDataCache = {};
 
-  Future<void> _addSongs() async {
+
+  Future<(bool, Image?)> _songDataFor(String id, Song song) {
+    return _songDataCache.putIfAbsent(id, () async {
+      final available = await song.isAvailable();
+      final artwork = await song.artwork();
+      return (available, artwork);
+    });
+  }
+
+  Future<void> _addSongs(bool isAllSongsList) async {
+    if(!isAllSongsList) {
+      context.push("/library/${widget.playlistId}/addSongs");
+      return;
+    }
+
     final playlists = context.read<PlaylistsController>();
     final paths = await pickFiles();
     if(paths.isEmpty) return;
@@ -134,7 +151,7 @@ class SongListState extends State<SongList> {
       ),
 
       body: playlist.songs.isEmpty
-          ? Center(child: Text('No items yet. Tap + to add one!'))
+          ? Center(child: Text('No songs yet. Tap + to add one!'))
           : ListView.builder(
               itemCount: playlist.songs.length,
               itemBuilder: (context, index) {
@@ -167,28 +184,43 @@ class SongListState extends State<SongList> {
                     child: Icon(Icons.queue_music_rounded, color: Colors.white),
                   ),
                   child: FutureBuilder(
-                    future: song.isAvailable(), 
-                    builder: (context, snapshot) =>
-                      SongItem(
+                    future: _songDataFor(id, song), 
+                    builder: (context, snapshot) {
+                      final (isAvailable, artwork) = snapshot.data ?? (false, null);
+                      return SongItem(
                         title: song.title,
                         subtitle: song.artist,
                         state: _getState(id, playback),
                         isSelected: _selectedIds.contains(id),
                         onPlayPause: () => playback.play(widget.playlistId, id),
                         onSelectToggle: () => _onSelectToggle(id),
-                        onMoreTap: () { /* open settings */ },
+                        onMenuAction: (action) {
+                          switch (action) {
+                            case 'queue':
+                              _enqueueItem(id);
+                              break;
+                            case 'select':
+                              _enterSelectionMode(id);
+                              break;
+                            case 'delete':
+                              _deleteItem(id);
+                              break;
+                          }
+                        },
                         onLongPress: () {
                           if (!_selectionMode) _enterSelectionMode(id);
                         },
-                        isPlayable: snapshot.hasData ? snapshot.data! : false,
-                      )
+                        isPlayable: isAvailable,
+                        artwork: artwork,
+                      );
+                    }
                   ),
                 );
               },
             ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: _addSongs,
+        onPressed: () async => await _addSongs(widget.playlistId == allSongsPlaylistName),
         child: Icon(Icons.add),
       ),
     );

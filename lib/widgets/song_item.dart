@@ -10,9 +10,10 @@ class SongItem extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onPlayPause;
   final VoidCallback onSelectToggle;
-  final VoidCallback onMoreTap;
+  final ValueChanged<String> onMenuAction;
   final VoidCallback onLongPress;
   final bool isPlayable;
+  final Image? artwork;
 
   const SongItem({
     super.key,
@@ -22,22 +23,30 @@ class SongItem extends StatelessWidget {
     required this.isSelected,
     required this.onPlayPause,
     required this.onSelectToggle,
-    required this.onMoreTap,
+    required this.onMenuAction,
     required this.onLongPress,
-    required this.isPlayable
+    required this.isPlayable,
+    required this.artwork
   });
 
-  Widget _buildLeading() {
+  Widget _buildForeground() {
     switch (state) {
       case SongState.selectionMode:
         return Icon(
           isSelected ? Icons.check_circle : Icons.circle_outlined,
-          color: isSelected ? Colors.blue : Colors.grey,
+          color: isSelected ? Colors.blue : Colors.black,
         );
       case SongState.playing:
         return PlayingBars();
+      case SongState.paused:
+        return Icon(Icons.pause, color: Colors.blue);
       default:
-        return Icon(Icons.music_note, color: Colors.grey);
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            // borderRadius: BorderRadius.circular(4),
+            // color: Colors.black.withValues(alpha: 0),
+          )
+        );
     }
   }
 
@@ -55,7 +64,7 @@ class SongItem extends StatelessWidget {
   Color? _getTitleColor() {
     switch(state) {
       case SongState.playing: case SongState.paused:
-        return Colors.grey;
+        return Colors.lightBlue;
       default:
         return Colors.black;
     }
@@ -72,12 +81,60 @@ class SongItem extends StatelessWidget {
         child: ListTile(
           onTap: state == SongState.selectionMode ? onSelectToggle : onPlayPause,
           onLongPress: onLongPress,
-          leading: _buildLeading(),
+          leading: SizedBox(
+            width: 40,
+            height: 40,
+            child: Stack(
+              alignment: Alignment.center,
+              fit: StackFit.expand,
+              children: [
+                artwork != null
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: artwork,
+                    )
+                  : DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(4),
+                          color: Colors.black.withValues(alpha: 0.25),
+                        ),
+                        child: Icon(Icons.music_note, color: Colors.grey),
+                    ),
+                _buildForeground(),
+              ],
+            ),
+          ),
           title: Text(title, style: TextStyle(color: _getTitleColor()),),
           subtitle: Text(subtitle),
           trailing: state == SongState.selectionMode
               ? null
-              : IconButton(icon: Icon(Icons.more_vert), onPressed: onMoreTap),
+              : PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: onMenuAction,
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'queue',
+                      child: ListTile(
+                        leading: Icon(Icons.queue_music_rounded),
+                        title: Text('Add to queue'),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'select',
+                      child: ListTile(
+                        leading: Icon(Icons.check_circle_outline),
+                        title: Text('Select'),
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'delete',
+                      child: ListTile(
+                        leading: Icon(Icons.delete_outline, color: Colors.red),
+                        title: Text('Delete', style: TextStyle(color: Colors.red)),
+                      ),
+                    ),
+                  ],
+                ),
         ),
       ),
     );

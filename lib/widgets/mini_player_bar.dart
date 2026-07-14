@@ -4,41 +4,49 @@ import 'package:go_router/go_router.dart';
 import '../controllers/contollers.dart';
 import '../models/song.dart';
 
-
 class MiniPlayerBar extends StatelessWidget {
   const MiniPlayerBar({super.key});
 
+  Widget _buildLeading(Image? artwork) {
+    return AspectRatio(
+            aspectRatio: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: artwork ?? const Icon(Icons.music_note),
+            ),
+          );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final playback = context.watch<PlaybackController>();
-    final playlists = context.watch<PlaylistsController>();
+    // only rebuilds when the playing song itself changes — position/duration
+    // ticks and unrelated playlist mutations are ignored entirely.
+    final playingId = context.select<PlaybackController, String?>((p) => p.playingId);
 
-    if (playback.playingId == null) {
-      return SizedBox.shrink();
+    if (playingId == null) {
+      return const SizedBox.shrink();
     }
 
-    Song song = playlists.getSong(playback.playingId!);
+    final song = context.select<PlaylistsController, Song>((p) => p.getSong(playingId));
+    final isPaused = context.select<PlaybackController, bool>((p) => p.isPaused);
+    final playback = context.read<PlaybackController>();
 
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: ListTile(
         onTap: () => context.push("/player"),
-        leading: Icon(Icons.music_note),
-        title: Text(song.title),       
-        subtitle: Text(song.artist),   
+        leading: FutureBuilder(
+          future: song.artwork(),
+          builder: (context, snapshot) => _buildLeading(snapshot.data),
+        ),
+        title: Text(song.title),
+        subtitle: Text(song.artist),
         trailing: Row(
-          mainAxisSize: MainAxisSize.min,  // ← add this
+          mainAxisSize: MainAxisSize.min,
           children: [
             IconButton(
-              icon: Icon(playback.isPaused ? Icons.play_arrow : Icons.pause),
-              onPressed: () {
-                if (playback.playingId == null) return;
-                if (playback.isPaused) {
-                  playback.unpause();
-                } else {
-                  playback.pause();
-                }
-              },
+              icon: Icon(isPaused ? Icons.play_arrow : Icons.pause),
+              onPressed: isPaused ? playback.unpause : playback.pause,
             ),
           ],
         ),

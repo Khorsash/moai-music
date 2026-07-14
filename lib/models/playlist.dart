@@ -13,4 +13,8 @@ class Playlist {
     name: json['name'] as String,
     songs: (json['songIds'] as List).cast<String>(),
   );
+
+  bool contains(String songId) {
+    return songs.contains(songId);
+  }
 }
