@@ -29,13 +29,22 @@ final router = GoRouter(
                 final playlistId = state.pathParameters['playlistId']!;
                 return SongList(playlistId: playlistId);
               },
+              routes: [
+                GoRoute(
+                  path: 'addSongs',
+                  builder: (context, state) { 
+                    final playlistId = state.pathParameters['playlistId']!;
+                    return SongAddList(playlistId: playlistId);
+                  }
+                )
+              ]
             ),
           ],
         ),
         GoRoute(
           path: '/newPlaylist',
           builder: (context, state) => NewPlaylistPage(),
-        )
+        ),
       ],
     ),
     GoRoute(
