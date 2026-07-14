@@ -13,6 +13,7 @@ class PlaylistsController extends ChangeNotifier {
   final Set<String> _changedPlaylistIds = {};
 
   Map<String, Playlist> get playlists => _playlists;
+  Map<String, Song> get allSongsAdded => _allSongsAdded;
 
   PlaylistsController() {
     _allSongsAdded = loadAllSaved();
@@ -31,6 +32,13 @@ class PlaylistsController extends ChangeNotifier {
   }
 
   bool songExists(String songId) => _allSongsAdded.containsKey(songId);
+
+  bool playlistExists(String playlistId) => _playlists.containsKey(playlistId);
+
+  bool playlistContains(String playlistId, String songId) {
+    if(!playlistExists(playlistId) || !songExists(songId)) return false;
+    return _playlists[playlistId]!.contains(songId);
+  }
 
   List<String> getPlaylistAsIdlist(String id) {
     return getPlaylist(id).songs;
@@ -112,6 +120,12 @@ class PlaylistsController extends ChangeNotifier {
       saveAllSaved(_allSongsAdded);
     }
     _markChanged(playlistId);
+    notifyListeners();
+  }
+
+  void removePlaylist(String playlistId) {
+    if(!playlistExists(playlistId) || playlistId == allSongsPlaylistName) return;
+    _playlists.remove(playlistId);
     notifyListeners();
   }
 }
