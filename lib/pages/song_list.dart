@@ -63,6 +63,10 @@ class SongListState extends State<SongList> {
     }
   }
 
+  void _addSongToPlaylists(String songId) {
+    context.push("/addToPlaylist/$songId");
+  }
+
   void _deleteItem(String id) {
     final playlists = context.read<PlaylistsController>();
     final playback = context.read<PlaybackController>();
@@ -198,6 +202,9 @@ class SongListState extends State<SongList> {
                           switch (action) {
                             case 'queue':
                               _enqueueItem(id);
+                              break;
+                            case 'playlists':
+                              _addSongToPlaylists(id);
                               break;
                             case 'select':
                               _enterSelectionMode(id);

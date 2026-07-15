@@ -120,6 +120,13 @@ class SongItem extends StatelessWidget {
                       ),
                     ),
                     const PopupMenuItem(
+                      value: 'playlists',
+                      child: ListTile(
+                        leading: Icon(Icons.library_add_outlined),
+                        title: Text('Add to playlist'),
+                      ),
+                    ),
+                    const PopupMenuItem(
                       value: 'select',
                       child: ListTile(
                         leading: Icon(Icons.check_circle_outline),

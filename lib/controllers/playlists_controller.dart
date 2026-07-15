@@ -104,6 +104,9 @@ class PlaylistsController extends ChangeNotifier {
       savePlaylists(_playlists); 
     } else {
       _allSongsAdded.remove(songId);
+      for(String pId in _playlists.keys.where((p) => p != allSongsPlaylistName)) {
+        removeSong(pId, songId);
+      }
       saveAllSaved(_allSongsAdded);
     }
     _markChanged(playlistId);
@@ -117,6 +120,9 @@ class PlaylistsController extends ChangeNotifier {
       savePlaylists(_playlists);
     } else {
       _allSongsAdded.removeWhere((id, song) => selectedIds.contains(id));
+      for(String pId in _playlists.keys.where((p) => p != allSongsPlaylistName)) {
+        removeSongs(pId, selectedIds);
+      }
       saveAllSaved(_allSongsAdded);
     }
     _markChanged(playlistId);
@@ -126,6 +132,7 @@ class PlaylistsController extends ChangeNotifier {
   void removePlaylist(String playlistId) {
     if(!playlistExists(playlistId) || playlistId == allSongsPlaylistName) return;
     _playlists.remove(playlistId);
+    savePlaylists(_playlists);
     notifyListeners();
   }
 }

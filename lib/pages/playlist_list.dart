@@ -30,7 +30,15 @@ class PlaylistListState extends State<PlaylistList> {
                 // made push so user can go back to library with back button
                 return PlaylistItem(playlistName: playlist.name, 
                                     onCLick: 
-                                      () => context.push('/library/$id'),);
+                                      () => context.push('/library/$id'),
+                                    onMenuAction: (action) {
+                                      switch(action) {
+                                        case 'delete':
+                                          playlists.removePlaylist(id);
+                                        default:
+                                          return;
+                                      }
+                                    },);
               }),
       floatingActionButton: FloatingActionButton(
         onPressed: _addPlaylist,
