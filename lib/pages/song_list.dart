@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:moai_music/constants.dart';
@@ -21,15 +22,16 @@ class SongListState extends State<SongList> {
 
   bool _selectionMode = false;
   Set<String> _selectedIds = {};
-  final Map<String, Future<(bool, Image?)>> _songDataCache = {};
+  final Map<String, Future<bool>> _availabilityCache = {};
 
+  Future<bool> _availabilityFor(String id, Song song) {
+    return _availabilityCache.putIfAbsent(id, () => song.isAvailable());
+  }
 
-  Future<(bool, Image?)> _songDataFor(String id, Song song) {
-    return _songDataCache.putIfAbsent(id, () async {
-      final available = await song.isAvailable();
-      final artwork = await song.artwork();
-      return (available, artwork);
-    });
+  Future<(bool, Image?)> _songDataFor(String id, Song song) async {
+    final available = await _availabilityFor(id, song);
+    final artwork = await song.artwork();
+    return (available, artwork);
   }
 
   Future<void> _addSongs(bool isAllSongsList) async {
@@ -55,8 +57,10 @@ class SongListState extends State<SongList> {
         ),
       ),
     );
+    await Future.delayed(Duration.zero);
     try {
-      final songs = await songsFromFiles(paths, SongAddMode.keepPath);
+      final mode = Platform.isAndroid ? SongAddMode.copyFile : SongAddMode.keepPath;
+      final songs = await songsFromFiles(paths, mode);
       playlists.addSongs(songs);
     } finally {
       if (mounted) Navigator.of(context, rootNavigator: true).pop();
@@ -187,8 +191,8 @@ class SongListState extends State<SongList> {
                     padding: EdgeInsets.only(right: 16),
                     child: Icon(Icons.queue_music_rounded, color: Colors.white),
                   ),
-                  child: FutureBuilder(
-                    future: _songDataFor(id, song), 
+                  child: FutureBuilder<(bool, Image?)>(
+                    future: _songDataFor(id, song),
                     builder: (context, snapshot) {
                       final (isAvailable, artwork) = snapshot.data ?? (false, null);
                       return SongItem(
@@ -220,7 +224,7 @@ class SongListState extends State<SongList> {
                         isPlayable: isAvailable,
                         artwork: artwork,
                       );
-                    }
+                    },
                   ),
                 );
               },

@@ -163,7 +163,7 @@ Future<List<String>> allAudioFilesIn(String dirPath) async {
 }
 
 Future<Song> songFromFile(String filePath, SongAddMode mode) async {
-  String destDir = (await getApplicationSupportDirectory()).path;
+  String destDir = AppPaths.downloadedSongsPath;
   String path;
   try {
     path = mode == .copyFile 
@@ -172,11 +172,10 @@ Future<Song> songFromFile(String filePath, SongAddMode mode) async {
                     ? await moveToDirectory(filePath, destDir)
                     : filePath
                     );
+    return songFromReadyPath(path);
   } catch(e) {
     return Song.badSong();
   }
-
-  return songFromReadyPath(path);
 }
 
 

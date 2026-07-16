@@ -190,14 +190,11 @@ class PlaybackController extends ChangeNotifier {
   void toggleShuffle() {
     _shuffled = !_shuffled;
     if(_playingId == null || _playingPlaylistId == null) return;
+    _historyQueue.clear();
     if (_shuffled) {
         _playlistQueue.shuffle();
     } else {
-      final original = _getPlaylist(_playingPlaylistId!);
-      final remaining = _playlistQueue.toSet();
-      _playlistQueue
-        ..clear()
-        ..addAll(original.where(remaining.contains));
+      _rebuildQueue(_playingPlaylistId!, startAfter: playingId);
     }
     notifyListeners();
   }

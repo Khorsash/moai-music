@@ -44,15 +44,22 @@ class Song{
 
   static Future<Song> fromFile(String fileName) async => await songFromReadyPath(fileName);
 
-  Future<Image?> artwork() async {
-    if(songType != .local) return null;
-    final tag = await AudioTags.read(address);
-    final pictures = tag?.pictures;
-    if (pictures != null && pictures.isNotEmpty) {
-      return Image.memory(pictures.first.bytes);
-    }
-    return null;
+  static final Map<String, Future<Image?>> _artworkCache = {};
+
+  Future<Image?> artwork() {
+    if(songType != .local) return Future.value(null);
+    return _artworkCache.putIfAbsent(address, () async {
+      try {
+        final tag = await AudioTags.read(address);
+        final pictures = tag?.pictures;
+        if (pictures != null && pictures.isNotEmpty) {
+          return Image.memory(pictures.first.bytes);
+        }
+      } catch (e) {
+        return null;
+      }
+    });
   }
 
   factory Song.badSong() => Song(title: "Untitled", artist: "Unknown", address: "", songType: SongType.nonexistent);
-} 
+}
