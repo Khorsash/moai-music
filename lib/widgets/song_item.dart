@@ -14,6 +14,7 @@ class SongItem extends StatelessWidget {
   final VoidCallback onLongPress;
   final bool isPlayable;
   final Image? artwork;
+  final bool isUserAdd;
 
   const SongItem({
     super.key,
@@ -26,7 +27,8 @@ class SongItem extends StatelessWidget {
     required this.onMenuAction,
     required this.onLongPress,
     required this.isPlayable,
-    required this.artwork
+    required this.artwork,
+    this.isUserAdd = false
   });
 
   Widget _buildForeground() {
@@ -66,7 +68,7 @@ class SongItem extends StatelessWidget {
       case SongState.playing: case SongState.paused:
         return Colors.lightBlue;
       default:
-        return Colors.black;
+        return isUserAdd ? Colors.green : Colors.black;
     }
   }
 

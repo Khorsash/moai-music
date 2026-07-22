@@ -32,6 +32,9 @@ class PlaybackController extends ChangeNotifier {
   bool get shuffled => _shuffled;
   Duration get position => _position;
   Duration get duration => _duration;
+  bool isQueueEmpty() => _userQueue.isEmpty && _playlistQueue.isEmpty;
+  List<String> get userQueue => _userQueue;
+  List<String> get playlistQueue => _playlistQueue;
 
   PlaybackController({
     required this._getSong,
@@ -62,23 +65,37 @@ class PlaybackController extends ChangeNotifier {
     if(_songExists(songId)) {
       _userQueue.add(songId);
     }
+    notifyListeners();
   }
 
-  Future<void> playTestAsset(String playlistId, String id) async {
-    await _player.setAudioSource(
-      AudioSource.asset(
-        'assets/Sektor_Gaza_Life.mp3',
-        tag: MediaItem(
-          id: 'test',
-          title: 'Sektor Gaza - Life',
-          artist: 'Sektor Gaza',
-        ),
-      ),
-    );
-    _playingId = id;
-    _playingPlaylistId = playlistId;
-    _isPaused = false;
-    _player.play();
+  void deleteFromQueue(int i) {
+    if(i>=_userQueue.length) {
+      _playlistQueue.removeAt(i-_userQueue.length);
+    } else {
+      _userQueue.removeAt(i);
+    }
+    notifyListeners();
+  }
+
+  Future<void> skipToQueueSong(int i) async {
+    String songId;
+    if(i>=_userQueue.length) {
+      for(int j=0; j<i-_userQueue.length; j++) {
+        _historyQueue.add(_playlistQueue.removeAt(0));
+      }
+      songId = _historyQueue.first;
+    } else {
+      songId = _userQueue.removeAt(i);
+    }
+    await play(_playingPlaylistId!, songId, redirectNext: true, queueGoing: true);
+  }
+
+  void moveSongInQueue(int ip, int np) {
+    String songId = ip >= _userQueue.length 
+                    ? _playlistQueue.removeAt(ip-_userQueue.length)
+                    : _userQueue.removeAt(ip);
+    if(np >= _userQueue.length+1 || _userQueue.isEmpty) {_playlistQueue.insert(np-_userQueue.length, songId);}
+    else {_userQueue.insert(np, songId);}
     notifyListeners();
   }
 
@@ -153,8 +170,13 @@ class PlaybackController extends ChangeNotifier {
 
   void unpause() {
     _isPaused = false;
-    _player.play(); // fire-and-forget, same reason as above
+    _player.play();
     notifyListeners();
+  }
+
+  void togglePause() {
+    if(_isPaused) {unpause();}
+    else {pause();}
   }
 
   Future<void> _skipBad(bool redirectNext) async {

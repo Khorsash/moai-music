@@ -93,6 +93,9 @@ class _PlayerAppBar extends StatelessWidget {
           ],
         
       ),
+      actions: [
+        IconButton(onPressed: () => context.push("/queue"), icon: Icon(Icons.queue_music))
+      ],
     );
   }
 }

@@ -55,9 +55,8 @@ class Song{
         if (pictures != null && pictures.isNotEmpty) {
           return Image.memory(pictures.first.bytes);
         }
-      } catch (e) {
-        return null;
-      }
+      } catch (_) {}
+      return null;
     });
   }
 
