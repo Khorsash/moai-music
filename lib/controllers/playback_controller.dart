@@ -123,7 +123,7 @@ class PlaybackController extends ChangeNotifier {
           );
         } else {
           _skipBad(redirectNext);
-          return; // stop here — don't fall through to play a source we never set
+          return;
         }
       } catch(e) {
         _skipBad(redirectNext);
@@ -131,14 +131,14 @@ class PlaybackController extends ChangeNotifier {
       }
     }
     _isPaused = false;
-    _player.play(); // fire-and-forget — this Future only resolves when playback stops
+    _player.play(); 
     notifyListeners(); 
   }
 
 
   void onPlaylistUpdated() {
     if (_playingPlaylistId == null) return;
-    if (!_consumeChanged(_playingPlaylistId!)) return; // not our playlist, skip
+    if (!_consumeChanged(_playingPlaylistId!)) return;
 
     _rebuildQueue(_playingPlaylistId!);
     notifyListeners();
@@ -152,7 +152,7 @@ class PlaybackController extends ChangeNotifier {
       final idx = songs.indexOf(startAfter);
 
       if (idx != -1 && !shuffled) {
-        songs.removeRange(0, idx + 1); // drop everything up to & including the tapped song
+        songs.removeRange(0, idx + 1); 
       }
       else {
         songs.removeAt(idx);
@@ -264,6 +264,7 @@ class PlaybackController extends ChangeNotifier {
     if(_historyQueue.isEmpty) {
       await setSongProgress(Duration.zero);
     } else {
+      _playlistQueue.insert(0, _playingId!);
       await play(_playingPlaylistId!, _historyQueue.removeLast(), redirectNext: _historyQueue.isEmpty, queueGoing: true);
     }
   }
