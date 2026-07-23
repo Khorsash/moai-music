@@ -20,6 +20,9 @@ class MainInterface extends StatelessWidget {
       case 1:
         context.go('/library');
         break;
+      case 2:
+        context.push('/queue');
+        break;
     }
   }
 
@@ -41,6 +44,7 @@ class MainInterface extends StatelessWidget {
             items: [
               BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
               BottomNavigationBarItem(icon: Icon(Icons.library_music_rounded), label: 'Library'),
+              BottomNavigationBarItem(icon: Icon(Icons.queue_music), label: 'Queue'),
             ],
           ),
         ],
