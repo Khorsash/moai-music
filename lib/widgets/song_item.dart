@@ -15,6 +15,7 @@ class SongItem extends StatelessWidget {
   final bool isPlayable;
   final Image? artwork;
   final bool isUserAdd;
+  final Widget? dragHandle;
 
   const SongItem({
     super.key,
@@ -28,7 +29,8 @@ class SongItem extends StatelessWidget {
     required this.onLongPress,
     required this.isPlayable,
     required this.artwork,
-    this.isUserAdd = false
+    this.isUserAdd = false,
+    this.dragHandle
   });
 
   Widget _buildForeground() {
@@ -110,40 +112,46 @@ class SongItem extends StatelessWidget {
           subtitle: Text(subtitle),
           trailing: state == SongState.selectionMode
               ? null
-              : PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: onMenuAction,
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'queue',
-                      child: ListTile(
-                        leading: Icon(Icons.queue_music_rounded),
-                        title: Text('Add to queue'),
-                      ),
+              : Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert),
+                      onSelected: onMenuAction,
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'queue',
+                          child: ListTile(
+                            leading: Icon(Icons.queue_music_rounded),
+                            title: Text('Add to queue'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'playlists',
+                          child: ListTile(
+                            leading: Icon(Icons.library_add_outlined),
+                            title: Text('Add to playlist'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'select',
+                          child: ListTile(
+                            leading: Icon(Icons.check_circle_outline),
+                            title: Text('Select'),
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'delete',
+                          child: ListTile(
+                            leading: Icon(Icons.delete_outline, color: Colors.red),
+                            title: Text('Delete', style: TextStyle(color: Colors.red)),
+                          ),
+                        ),
+                      ],
                     ),
-                    const PopupMenuItem(
-                      value: 'playlists',
-                      child: ListTile(
-                        leading: Icon(Icons.library_add_outlined),
-                        title: Text('Add to playlist'),
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'select',
-                      child: ListTile(
-                        leading: Icon(Icons.check_circle_outline),
-                        title: Text('Select'),
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: ListTile(
-                        leading: Icon(Icons.delete_outline, color: Colors.red),
-                        title: Text('Delete', style: TextStyle(color: Colors.red)),
-                      ),
-                    ),
-                  ],
-                ),
+                    if (dragHandle != null) dragHandle!,
+                  ]
+                )
         ),
       ),
     );

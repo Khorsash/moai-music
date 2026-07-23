@@ -83,49 +83,13 @@ class QueuePageState extends State<QueuePage> {
               ),
               Expanded(
                 child: ReorderableListView.builder(
-                  // itemBuilder:(context, index) {
-                  //   bool isUserAdd = index < userQueue.length;
-                  //   String id = combined[index];
-                  //   Song song = context.select<PlaylistsController, Song>((p) => p.getSong(id));
-
-                  //   return FutureBuilder<(bool, Image?)>(
-                  //         future: _songDataFor(id, song),
-                  //         builder: (context, snapshot) {
-                  //           final (isAvailable, artwork) = snapshot.data ?? (false, null);
-                  //           return SongItem(
-                  //             title: song.title, 
-                  //             subtitle: song.artist, 
-                  //             state: _getState(id, playback), 
-                  //             isSelected: false, 
-                  //             onPlayPause: () => playback.skipToQueueSong(index), 
-                  //             onSelectToggle: () {}, 
-                  //             onMenuAction: (action) {
-                  //               switch (action) {
-                  //                 case 'queue':
-                  //                   playback.addToQueue(id);
-                  //                   break;
-                  //                 case 'playlists':
-                  //                   _addSongToPlaylists(id);
-                  //                   break;
-                  //                 case 'delete':
-                  //                   playback.deleteFromQueue(index);
-                  //                   break;
-                  //               }
-                  //             },
-                  //             onLongPress: () {}, 
-                  //             isPlayable: isAvailable, 
-                  //             artwork: artwork,
-                  //             isUserAdd: isUserAdd,
-                  //           );
-                  //         }
-                  //   );
-                  // },
-                  itemBuilder:(context, index) {
+                  buildDefaultDragHandles: false,
+                  itemBuilder: (context, index) {
                     bool isUserAdd = index < userQueue.length;
                     String id = combined[index];
 
                     return Builder(
-                      key: ValueKey(id+index.toString()),
+                      key: ValueKey(id + index.toString()),
                       builder: (context) {
                         Song song = context.select<PlaylistsController, Song>((p) => p.getSong(id));
 
@@ -157,6 +121,10 @@ class QueuePageState extends State<QueuePage> {
                               isPlayable: isAvailable,
                               artwork: artwork,
                               isUserAdd: isUserAdd,
+                              dragHandle: ReorderableDelayedDragStartListener(
+                                index: index,
+                                child: const Icon(Icons.drag_handle),
+                              ),
                             );
                           },
                         );
