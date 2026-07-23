@@ -83,14 +83,16 @@ class PlaybackController extends ChangeNotifier {
       for(int j=0; j<i-_userQueue.length; j++) {
         _historyQueue.add(_playlistQueue.removeAt(0));
       }
-      songId = _historyQueue.first;
+      songId = _playlistQueue.removeAt(0);
     } else {
       songId = _userQueue.removeAt(i);
     }
+    _isCurrentFromUserQueue = _userQueue.isNotEmpty;
     await play(_playingPlaylistId!, songId, redirectNext: true, queueGoing: true);
   }
 
   void moveSongInQueue(int ip, int np) {
+    if(ip == np) return;
     String songId = ip >= _userQueue.length 
                     ? _playlistQueue.removeAt(ip-_userQueue.length)
                     : _userQueue.removeAt(ip);
