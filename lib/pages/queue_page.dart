@@ -64,6 +64,8 @@ class QueuePageState extends State<QueuePage> {
     combined.addAll(userQueue);
     combined.addAll(playlistQueue);
 
+    final playingsongId = playback.playingId!;
+    final playingSong = context.read<PlaylistsController>().getSong(playingsongId);
     
     return Dismissible(
       key: const ValueKey("queue"),
@@ -81,6 +83,23 @@ class QueuePageState extends State<QueuePage> {
                 title: Text("Queue"),
                 leading: IconButton(onPressed: () => context.pop(), icon: Icon(Icons.keyboard_arrow_down)),
               ),
+              FutureBuilder<Image?>(
+                future: playingSong.artwork(), 
+                builder: (context, snapshot) =>
+                  SongItem(
+                    title: playingSong.title, 
+                    subtitle: playingSong.artist, 
+                    state: _getState(playingsongId, playback), 
+                    isSelected: false, 
+                    onPlayPause: playback.togglePause, 
+                    onSelectToggle: () {}, 
+                    onMenuAction: (action) {}, 
+                    onLongPress: () {}, 
+                    isPlayable: true, 
+                    artwork: snapshot.data,
+                  ),
+              ),
+              Divider(),
               Expanded(
                 child: ReorderableListView.builder(
                   buildDefaultDragHandles: false,

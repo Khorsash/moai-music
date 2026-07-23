@@ -32,7 +32,7 @@ class PlaybackController extends ChangeNotifier {
   bool get shuffled => _shuffled;
   Duration get position => _position;
   Duration get duration => _duration;
-  bool isQueueEmpty() => _userQueue.isEmpty && _playlistQueue.isEmpty;
+  bool isQueueEmpty() => _userQueue.isEmpty && _playlistQueue.isEmpty && _playingId == null;
   List<String> get userQueue => _userQueue;
   List<String> get playlistQueue => _playlistQueue;
 

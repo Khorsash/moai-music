@@ -55,6 +55,7 @@ class SongItem extends StatelessWidget {
   }
 
   Color? _getBackgroundColor() {
+    if(isUserAdd) return Colors.green.withValues(alpha: 0.08);
     switch (state) {
       case SongState.playing: case SongState.paused:
         return Colors.blue.withValues(alpha: 0.08);
